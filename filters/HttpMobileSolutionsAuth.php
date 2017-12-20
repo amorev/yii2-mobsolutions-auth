@@ -9,63 +9,64 @@
 namespace Zvinger\Auth\Mobsolutions\filters;
 
 use yii\filters\auth\AuthMethod;
+use yii\web\Request;
+use yii\web\Response;
+use yii\web\User;
+use Zvinger\Auth\Mobsolutions\components\MobileSolutionsAuthComponent;
+use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 
 class HttpMobileSolutionsAuth extends AuthMethod
 {
     const METHOD_SHA512 = 'sha512mob';
 
     /**
+     * @var MobileSolutionsAuthComponent
+     */
+    private $_mobileSolutionsAuthComponent;
+
+    /**
+     * @return MobileSolutionsAuthComponent
+     */
+    private function getMobileSolutionsAuthComponent(): MobileSolutionsAuthComponent
+    {
+        return $this->_mobileSolutionsAuthComponent;
+    }
+
+    /**
+     * @param MobileSolutionsAuthComponent $mobileSolutionsAuthComponent
+     */
+    public function setMobileSolutionsAuthComponent(MobileSolutionsAuthComponent $mobileSolutionsAuthComponent): void
+    {
+        $this->_mobileSolutionsAuthComponent = $mobileSolutionsAuthComponent;
+    }
+
+    /**
      * Authenticates the current user.
      * @param User $user
      * @param Request $request
      * @param Response $response
-     * @return IdentityInterface the authenticated user identity. If authentication information is not provided, null will be returned.
-     * @throws UnauthorizedHttpException
-     * @throws UnprocessableEntityHttpException
+     * @return
+     * @throws \Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException
+     * @throws \yii\web\UnauthorizedHttpException
+     * @throws \yii\web\UnprocessableEntityHttpException
      */
     public function authenticate($user, $request, $response)
     {
-        $body = \Yii::$app->request->rawBody;
-        $appId = \Yii::$app->request->headers->get('X-Auth-AppId');
-        $time = \Yii::$app->request->headers->get('X-Auth-Time');
-        $signature = \Yii::$app->request->headers->get('X-Auth-Signature');
-        $method = \Yii::$app->request->headers->get('X-Auth-Method');
-        d($method);die;
-        /** @var UserMobileIdentity $identity */
-        $identity = \Yii::$app->user->loginByAccessToken($appId);
-        if (empty($identity)) {
+        $component = $this->getMobileSolutionsAuthComponent();
+        /** @var AuthenticateData $data */
+        $data = \Yii::configure(new AuthenticateData(), [
+            'appId'     => \Yii::$app->request->headers->get('X-Auth-AppId'),
+            'time'      => \Yii::$app->request->headers->get('X-Auth-Time'),
+            'signature' => \Yii::$app->request->headers->get('X-Auth-Signature'),
+            'method'    => \Yii::$app->request->headers->get('X-Auth-Method'),
+            'rawBody'   => \Yii::$app->request->rawBody,
+        ]);
+
+        $identity = $component->authenticate($data);
+        if ($identity === FALSE) {
             $this->handleFailure($response);
         }
-        if ($identity->status == $identity::STATUS_NOT_ACTIVE) {
-            throw new UnauthorizedHttpException("Ваш пользователь еще не подтвержден");
-        }
-        if ($identity->status == $identity::STATUS_DELETED) {
-            throw new UnauthorizedHttpException("Ваш пользователь удален");
-        }
-        $userMobileToken = $identity->getCurrentUserMobileToken();
-        if (empty($userMobileToken)) {
-            $this->handleFailure($response);
-        }
-        $secret = md5($userMobileToken->secret);
-        $cryptBody = $body . $secret . $time;
-        if ($method == self::METHOD_SHA512) {
-            $crypt = hash('sha512', $cryptBody);
-        } else {
-            throw new UnprocessableEntityHttpException("Неизвестный метод подписи данных: " . $method);
-        }
-        $authResult = \Yii::$app->security->compareString($signature, $crypt);
-        if (!$authResult) {
-            if (true) {
-                if ($turnOff && \Yii::$app->request->headers->get("BYPASS-AUTH-FOR-DEVELOP") == 1) {
-                    return UserMobileIdentity::findOne(1);
-                } else {
-                    \Yii::$app->response->headers->add("X-Needed-Signature", $crypt);
-                    $this->handleFailure($response);
-                }
-            } else {
-                $this->handleFailure($response);
-            }
-        }
+        $user->login($identity);
 
         return $identity;
     }
