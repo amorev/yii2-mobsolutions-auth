@@ -9,6 +9,8 @@ use yii\web\User;
 use Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException;
 use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 use Zvinger\Auth\Mobsolutions\models\user\token\UserMobsolutionTokenObject;
+use Zvinger\BaseClasses\app\components\user\identity\VendorUserIdentity;
+use Zvinger\BaseClasses\app\exceptions\model\ModelValidateException;
 
 class MobileSolutionsAuthComponent
 {
@@ -63,5 +65,23 @@ class MobileSolutionsAuthComponent
         $user = UserIdentity::findIdentity($token->user_id);
 
         return $user;
+    }
+
+    public function loginIdentity(VendorUserIdentity $identity)
+    {
+        $tokenObject = new UserMobsolutionTokenObject();
+        $tokenObject->user_id = $identity->getId();
+        $appId = NULL;
+        while (!$tokenObject::checkAppIdValid($appId)) {
+            $appId = \Yii::$app->security->generateRandomString(16);
+        }
+        $tokenObject->app_id = $appId;
+        $tokenObject->secret = \Yii::$app->security->generateRandomString(64);
+        $tokenObject->status = $tokenObject::STATUS_ACTIVE;
+        if (!$tokenObject->save()) {
+            throw new ModelValidateException($tokenObject);
+        }
+
+        return $tokenObject;
     }
 }

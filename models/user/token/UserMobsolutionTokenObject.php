@@ -2,7 +2,9 @@
 
 namespace Zvinger\Auth\Mobsolutions\models\user\token;
 
+use app\models\work\user\object\VendorUserObject;
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "user_mobsol_token".
@@ -18,6 +20,9 @@ use Yii;
  */
 class UserMobsolutionTokenObject extends \yii\db\ActiveRecord
 {
+    const STATUS_ACTIVE = 1;
+    const STATUS_DELETED = 2;
+
     /**
      * @inheritdoc
      */
@@ -32,12 +37,15 @@ class UserMobsolutionTokenObject extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'created_at'], 'integer'],
+            [['user_id', 'created_at', 'status'], 'integer'],
             [['app_id', 'secret'], 'string', 'max' => 64],
-            [['status'], 'string', 'max' => 255],
             [['app_id'], 'unique'],
             [['secret'], 'unique'],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
+            [['user_id'],
+                'exist',
+                'skipOnError'     => TRUE,
+                'targetClass'     => VendorUserObject::className(),
+                'targetAttribute' => ['user_id' => 'id']],
         ];
     }
 
@@ -47,14 +55,25 @@ class UserMobsolutionTokenObject extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'user_id' => 'User ID',
-            'app_id' => 'App ID',
-            'secret' => 'Secret',
-            'status' => 'Status',
+            'id'         => 'ID',
+            'user_id'    => 'User ID',
+            'app_id'     => 'App ID',
+            'secret'     => 'Secret',
+            'status'     => 'Status',
             'created_at' => 'Created At',
         ];
     }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class'              => TimestampBehavior::class,
+                'updatedAtAttribute' => FALSE,
+            ],
+        ];
+    }
+
 
     /**
      * @return \yii\db\ActiveQuery
@@ -71,5 +90,10 @@ class UserMobsolutionTokenObject extends \yii\db\ActiveRecord
     public static function find()
     {
         return new UserMobsolTokenQuery(get_called_class());
+    }
+
+    public static function checkAppIdValid($appId)
+    {
+        return !empty($appId) && static::find()->andWhere(['app_id' => $appId])->count() == 0;
     }
 }

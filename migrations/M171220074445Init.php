@@ -19,7 +19,7 @@ class M171220074445Init extends Migration
             'user_id' => $this->integer(11),
             'app_id' => $this->string(64),
             'secret' => $this->string(64),
-            'status' => $this->string(),
+            'status' => $this->integer(),
             'created_at' => $this->integer(11),
         ], $tableOptions);
 
