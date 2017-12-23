@@ -14,6 +14,11 @@ class M171220074445Init extends Migration
      */
     public function safeUp()
     {
+        $tableOptions = null;
+        if ($this->db->driverName === 'mysql') {
+            $tableOptions = 'CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB';
+        }
+
         $this->createTable('{{%user_mobsol_token}}', [
             'id' => $this->primaryKey(),
             'user_id' => $this->integer(11),

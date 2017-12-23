@@ -3,7 +3,9 @@
 namespace Zvinger\Auth\Mobsolutions\components;
 
 use app\components\user\identity\UserIdentity;
+use yii\base\BaseObject;
 use yii\helpers\ArrayHelper;
+use yii\web\IdentityInterface;
 use yii\web\UnprocessableEntityHttpException;
 use yii\web\User;
 use Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException;
@@ -12,7 +14,7 @@ use Zvinger\Auth\Mobsolutions\models\user\token\UserMobsolutionTokenObject;
 use Zvinger\BaseClasses\app\components\user\identity\VendorUserIdentity;
 use Zvinger\BaseClasses\app\exceptions\model\ModelValidateException;
 
-class MobileSolutionsAuthComponent
+class MobileSolutionsAuthComponent extends BaseObject
 {
     const MOBSOL_TOKEN_KEY = 'mobsolutions_token';
     const METHOD_SHA512 = 'sha512mob';
@@ -25,8 +27,20 @@ class MobileSolutionsAuthComponent
      */
     private $_current_token_object;
 
+    private $_allow_wrong_signature = FALSE;
+
+    public function init()
+    {
+        if (YII_ENV_DEV && env('ALLOW_NOW_SIGN_API') === true) {
+            $this->_allow_wrong_signature = TRUE;
+        }
+        parent::init();
+    }
+
+
     /**
      * @param AuthenticateData $authenticateData
+     * @return bool|IdentityInterface|VendorUserIdentity
      * @throws WrongAppIdMobileSolutionsAuthException
      * @throws UnprocessableEntityHttpException
      */
@@ -47,7 +61,7 @@ class MobileSolutionsAuthComponent
         }
         $authResult = \Yii::$app->security->compareString($authenticateData->signature, $crypt);
 
-        return $authResult ? $identity : FALSE;
+        return ($authResult || $this->_allow_wrong_signature) ? $identity : FALSE;
     }
 
     /**
@@ -67,7 +81,13 @@ class MobileSolutionsAuthComponent
         return $user;
     }
 
-    public function loginIdentity(VendorUserIdentity $identity)
+    /**
+     * @param $identity
+     * @return UserMobsolutionTokenObject
+     * @throws ModelValidateException
+     * @throws \yii\base\Exception
+     */
+    public function loginIdentity(IdentityInterface $identity)
     {
         $tokenObject = new UserMobsolutionTokenObject();
         $tokenObject->user_id = $identity->getId();
@@ -83,5 +103,10 @@ class MobileSolutionsAuthComponent
         }
 
         return $tokenObject;
+    }
+
+    public function confirmUser()
+    {
+        
     }
 }

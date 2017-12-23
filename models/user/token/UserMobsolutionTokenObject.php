@@ -2,7 +2,7 @@
 
 namespace Zvinger\Auth\Mobsolutions\models\user\token;
 
-use app\models\work\user\object\VendorUserObject;
+use app\models\work\user\object\UserObject;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 
@@ -44,7 +44,7 @@ class UserMobsolutionTokenObject extends \yii\db\ActiveRecord
             [['user_id'],
                 'exist',
                 'skipOnError'     => TRUE,
-                'targetClass'     => VendorUserObject::className(),
+                'targetClass'     => UserObject::className(),
                 'targetAttribute' => ['user_id' => 'id']],
         ];
     }
