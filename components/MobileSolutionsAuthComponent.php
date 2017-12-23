@@ -2,6 +2,7 @@
 
 namespace Zvinger\Auth\Mobsolutions\components;
 
+use app\components\user\handler\UserActivationHandler;
 use app\components\user\identity\UserIdentity;
 use yii\base\BaseObject;
 use yii\helpers\ArrayHelper;
@@ -31,7 +32,7 @@ class MobileSolutionsAuthComponent extends BaseObject
 
     public function init()
     {
-        if (YII_ENV_DEV && env('ALLOW_NOW_SIGN_API') === true) {
+        if (YII_ENV_DEV && env('ALLOW_NOW_SIGN_API') === TRUE) {
             $this->_allow_wrong_signature = TRUE;
         }
         parent::init();
@@ -105,8 +106,34 @@ class MobileSolutionsAuthComponent extends BaseObject
         return $tokenObject;
     }
 
-    public function confirmUser()
+    /**
+     * @param $user_id
+     * @param $type
+     * @param $code
+     * @return bool
+     * @throws \Exception
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function confirmUser($user_id, $type, $code)
     {
-        
+        $handler = (new UserActivationHandler())->setUserId($user_id);
+
+        return $handler->activate($type, $code);
+    }
+
+    /**
+     * @param $user_id
+     * @param $type
+     * @return void
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyMessageTextException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function revalidateUser($user_id, $type)
+    {
+        $handler = (new UserActivationHandler())->setUserId($user_id);
+
+        return $handler->handle([$type]);
     }
 }
