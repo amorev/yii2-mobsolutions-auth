@@ -13,6 +13,7 @@ use Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException;
 use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 use Zvinger\Auth\Mobsolutions\models\user\token\UserMobsolutionTokenObject;
 use Zvinger\BaseClasses\app\components\user\identity\VendorUserIdentity;
+use Zvinger\BaseClasses\app\components\user\VendorUserHandlerComponent;
 use Zvinger\BaseClasses\app\exceptions\model\ModelValidateException;
 
 class MobileSolutionsAuthComponent extends BaseObject
@@ -135,5 +136,28 @@ class MobileSolutionsAuthComponent extends BaseObject
         $handler = (new UserActivationHandler())->setUserId($user_id);
 
         return $handler->handle([$type]);
+    }
+
+
+    /**
+     * @var User
+     */
+    private $_user_component;
+
+    public function getUserComponent()
+    {
+        if (empty($this->_user_component)) {
+            $this->_user_component = \Yii::$app->get($this->userComponentName);
+        }
+
+        return $this->_user_component;
+    }
+
+    /**
+     * @return UserMobsolutionTokenObject
+     */
+    public function getCurrentTokenObject(): UserMobsolutionTokenObject
+    {
+        return $this->_current_token_object;
     }
 }
