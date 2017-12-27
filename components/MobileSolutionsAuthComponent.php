@@ -29,6 +29,9 @@ class MobileSolutionsAuthComponent extends BaseObject
      */
     private $_current_token_object;
 
+    /** @var IdentityInterface */
+    private $_current_identity;
+
     private $_allow_wrong_signature = FALSE;
 
     public function init()
@@ -79,6 +82,7 @@ class MobileSolutionsAuthComponent extends BaseObject
         }
         $this->_current_token_object = $token;
         $user = UserIdentity::findIdentity($token->user_id);
+        $this->_current_identity = $user;
 
         return $user;
     }
