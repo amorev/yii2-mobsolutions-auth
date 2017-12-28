@@ -5,7 +5,6 @@ namespace Zvinger\Auth\Mobsolutions\components;
 use app\components\user\handler\UserActivationHandler;
 use app\components\user\identity\UserIdentity;
 use yii\base\BaseObject;
-use yii\helpers\ArrayHelper;
 use yii\web\IdentityInterface;
 use yii\web\UnprocessableEntityHttpException;
 use yii\web\User;
@@ -13,7 +12,6 @@ use Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException;
 use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 use Zvinger\Auth\Mobsolutions\models\user\token\UserMobsolutionTokenObject;
 use Zvinger\BaseClasses\app\components\user\identity\VendorUserIdentity;
-use Zvinger\BaseClasses\app\components\user\VendorUserHandlerComponent;
 use Zvinger\BaseClasses\app\exceptions\model\ModelValidateException;
 
 class MobileSolutionsAuthComponent extends BaseObject

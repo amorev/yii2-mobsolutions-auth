@@ -16,6 +16,7 @@ use yii\web\Response;
 use yii\web\UnauthorizedHttpException;
 use yii\web\User;
 use Zvinger\Auth\Mobsolutions\components\MobileSolutionsAuthComponent;
+use Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException;
 use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 use Zvinger\BaseClasses\app\components\user\identity\attributes\status\UserStatusAttribute;
 
@@ -72,8 +73,11 @@ class HttpMobileSolutionsAuth extends AuthMethod
             'method'    => \Yii::$app->request->headers->get('X-Auth-Method'),
             'rawBody'   => \Yii::$app->request->rawBody,
         ]);
-
-        $identity = $component->authenticate($data);
+        try {
+            $identity = $component->authenticate($data);
+        } catch (WrongAppIdMobileSolutionsAuthException $e) {
+            $identity = FALSE;
+        }
         if ($identity === FALSE) {
             $this->handleFailure($response);
         }
