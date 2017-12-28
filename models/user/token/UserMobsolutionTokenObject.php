@@ -5,6 +5,7 @@ namespace Zvinger\Auth\Mobsolutions\models\user\token;
 use app\models\work\user\object\UserObject;
 use Yii;
 use yii\behaviors\TimestampBehavior;
+use Zvinger\BaseClasses\app\models\work\user\object\VendorUserObject;
 
 /**
  * This is the model class for table "user_mobsol_token".
@@ -16,7 +17,7 @@ use yii\behaviors\TimestampBehavior;
  * @property string $status
  * @property int $created_at
  *
- * @property User $user
+ * @property VendorUserObject|UserObject $user
  */
 class UserMobsolutionTokenObject extends \yii\db\ActiveRecord
 {
