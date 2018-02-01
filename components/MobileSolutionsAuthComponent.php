@@ -50,6 +50,7 @@ class MobileSolutionsAuthComponent extends BaseObject
     public function authenticate(AuthenticateData $authenticateData)
     {
         $identity = $this->getIdentityByAppId($authenticateData->appId);
+        MobileSolutionsLogger::info("Identity #" . $identity->getId());
 
         if (empty($identity)) {
             throw new WrongAppIdMobileSolutionsAuthException();
@@ -62,6 +63,14 @@ class MobileSolutionsAuthComponent extends BaseObject
         } else {
             throw new UnprocessableEntityHttpException("Неизвестный метод подписи данных: " . $authenticateData->method);
         }
+        MobileSolutionsLogger::info("Auth info to check: " . print_r([
+                'bodyToCrypt'  => $cryptBody,
+                'cryptHash'    => $crypt,
+                'secret'       => $secret,
+                'hashedSecret' => $hashedSecret,
+                'signature'    => $authenticateData->signature,
+            ], 1));
+
         $authResult = \Yii::$app->security->compareString($authenticateData->signature, $crypt);
 
         return ($authResult || $this->_allow_wrong_signature) ? $identity : FALSE;
