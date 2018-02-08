@@ -4,7 +4,9 @@ namespace Zvinger\Auth\Mobsolutions\components;
 
 use app\components\user\handler\UserActivationHandler;
 use app\components\user\identity\UserIdentity;
+use app\models\work\user\object\UserObject;
 use yii\base\BaseObject;
+use yii\web\BadRequestHttpException;
 use yii\web\IdentityInterface;
 use yii\web\UnprocessableEntityHttpException;
 use yii\web\User;
@@ -136,10 +138,13 @@ class MobileSolutionsAuthComponent extends BaseObject
     /**
      * @param $user_id
      * @param $type
-     * @return void
+     * @return bool
+     * @throws \Zvinger\BaseClasses\app\components\email\exceptions\EmailComponentException
+     * @throws \Zvinger\BaseClasses\app\components\sms\exceptions\SmsException
      * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
      * @throws \Zvinger\Telegram\exceptions\message\EmptyChatIdException
      * @throws \Zvinger\Telegram\exceptions\message\EmptyMessageTextException
+     * @throws \yii\base\Exception
      * @throws \yii\base\InvalidConfigException
      */
     public function revalidateUser($user_id, $type)
@@ -149,6 +154,27 @@ class MobileSolutionsAuthComponent extends BaseObject
         return $handler->handle([$type]);
     }
 
+    /**
+     * @param $phone
+     * @return bool
+     * @throws BadRequestHttpException
+     * @throws \Zvinger\BaseClasses\app\components\email\exceptions\EmailComponentException
+     * @throws \Zvinger\BaseClasses\app\components\sms\exceptions\SmsException
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyMessageTextException
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function revalidatePhone($phone)
+    {
+        $userId = UserObject::find()->where(['username' => $phone])->select('id')->scalar();
+        if (empty($userId)) {
+            throw new BadRequestHttpException("Такой номер телефона не зарегистрирован");
+        }
+
+        return $this->revalidateUser($userId, UserActivationHandler::ACTIVATION_PHONE);
+    }
 
     /**
      * @var User
