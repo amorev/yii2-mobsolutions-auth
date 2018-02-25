@@ -197,4 +197,15 @@ class MobileSolutionsAuthComponent extends BaseObject
     {
         return $this->_current_token_object;
     }
+
+    /**
+     * @throws \Exception
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function logout()
+    {
+        $currentTokenObject = $this->getCurrentTokenObject();
+        $currentTokenObject->delete();
+    }
 }
