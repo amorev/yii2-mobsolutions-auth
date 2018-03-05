@@ -16,6 +16,7 @@ use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 use Zvinger\Auth\Mobsolutions\models\user\token\UserMobsolutionTokenObject;
 use Zvinger\BaseClasses\app\components\user\identity\VendorUserIdentity;
 use Zvinger\BaseClasses\app\exceptions\model\ModelValidateException;
+use Zvinger\BaseClasses\app\helpers\FunctionsHelpers;
 
 class MobileSolutionsAuthComponent extends BaseObject
 {
@@ -69,6 +70,7 @@ class MobileSolutionsAuthComponent extends BaseObject
      */
     public function checkSignature(AuthenticateData $authenticateData): bool
     {
+        FunctionsHelpers::saveDebug($authenticateData, 'auth');
         $secret = $this->_current_token_object->secret;
         $hashedSecret = md5($secret);
         $cryptBody = $authenticateData->rawBody . $hashedSecret . $authenticateData->time;
