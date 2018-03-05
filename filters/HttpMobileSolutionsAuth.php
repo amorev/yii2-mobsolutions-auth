@@ -11,12 +11,14 @@ namespace Zvinger\Auth\Mobsolutions\filters;
 use function GuzzleHttp\Psr7\_parse_request_uri;
 use yii\base\Action;
 use yii\filters\auth\AuthMethod;
+use yii\helpers\VarDumper;
 use yii\web\Request;
 use yii\web\Response;
 use yii\web\UnauthorizedHttpException;
 use yii\web\User;
 use Zvinger\Auth\Mobsolutions\components\MobileSolutionsAuthComponent;
 use Zvinger\Auth\Mobsolutions\components\MobileSolutionsLogger;
+use Zvinger\Auth\Mobsolutions\exceptions\SignatureCheckException;
 use Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException;
 use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 use Zvinger\BaseClasses\app\components\user\identity\attributes\status\UserStatusAttribute;
@@ -60,10 +62,10 @@ class HttpMobileSolutionsAuth extends AuthMethod
      * @param User $user
      * @param Request $request
      * @param Response $response
-     * @return
-     * @throws \Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException
+     * @return bool|\yii\web\IdentityInterface|\Zvinger\BaseClasses\app\components\user\identity\VendorUserIdentity
      * @throws \yii\web\UnauthorizedHttpException
      * @throws \yii\web\UnprocessableEntityHttpException
+     * @throws SignatureCheckException
      */
     public function authenticate($user, $request, $response)
     {
@@ -83,6 +85,11 @@ class HttpMobileSolutionsAuth extends AuthMethod
         } catch (WrongAppIdMobileSolutionsAuthException $e) {
             $identity = FALSE;
         }
+        $authResult = $component->checkSignature($data);
+        if ($authResult !== TRUE) {
+            throw new SignatureCheckException("Wrong signature: " . $data->signature);
+        }
+
         if ($identity === FALSE) {
             $this->handleFailure($response);
         }

@@ -10,6 +10,7 @@ use yii\web\BadRequestHttpException;
 use yii\web\IdentityInterface;
 use yii\web\UnprocessableEntityHttpException;
 use yii\web\User;
+use Zvinger\Auth\Mobsolutions\exceptions\SignatureCheckException;
 use Zvinger\Auth\Mobsolutions\exceptions\WrongAppIdMobileSolutionsAuthException;
 use Zvinger\Auth\Mobsolutions\models\auth\AuthenticateData;
 use Zvinger\Auth\Mobsolutions\models\user\token\UserMobsolutionTokenObject;
@@ -57,6 +58,17 @@ class MobileSolutionsAuthComponent extends BaseObject
         if (empty($identity)) {
             throw new WrongAppIdMobileSolutionsAuthException();
         }
+
+        return $identity;
+    }
+
+    /**
+     * @param AuthenticateData $authenticateData
+     * @return bool
+     * @throws UnprocessableEntityHttpException
+     */
+    public function checkSignature(AuthenticateData $authenticateData): bool
+    {
         $secret = $this->_current_token_object->secret;
         $hashedSecret = md5($secret);
         $cryptBody = $authenticateData->rawBody . $hashedSecret . $authenticateData->time;
@@ -75,8 +87,9 @@ class MobileSolutionsAuthComponent extends BaseObject
 
         $authResult = \Yii::$app->security->compareString($authenticateData->signature, $crypt);
 
-        return ($authResult || $this->_allow_wrong_signature) ? $identity : FALSE;
+        return $this->_allow_wrong_signature || $authResult;
     }
+
 
     /**
      * @param $appId
@@ -208,4 +221,6 @@ class MobileSolutionsAuthComponent extends BaseObject
         $currentTokenObject = $this->getCurrentTokenObject();
         $currentTokenObject->delete();
     }
+
+
 }
