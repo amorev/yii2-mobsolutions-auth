@@ -56,9 +56,11 @@ class MobileSolutionsFileHandler
     {
         $result = new MobileSolutionsFileInfo();
         $object = $this->_fileStorageModule->storage->getFile($this->_file_id);
-        $result->fileId = $this->_file_id;
-        $result->fileName = $object->fileStorageElement->path;
-        $result->fileUrl = $object->getFullUrl();
+        if (!empty($object)) {
+            $result->fileId = $this->_file_id;
+            $result->fileName = $object->fileStorageElement->path;
+            $result->fileUrl = $object->getFullUrl();
+        }
 
         return $result;
     }
