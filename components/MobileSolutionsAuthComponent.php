@@ -38,7 +38,7 @@ class MobileSolutionsAuthComponent extends BaseObject
 
     public function init()
     {
-        if (YII_ENV_DEV && env('ALLOW_NOW_SIGN_API') === TRUE) {
+        if (env('ALLOW_NOW_SIGN_API') === TRUE) {
             $this->_allow_wrong_signature = TRUE;
         }
         parent::init();
