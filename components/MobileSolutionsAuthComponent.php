@@ -74,7 +74,7 @@ class MobileSolutionsAuthComponent extends BaseObject
         $secret = $this->_current_token_object->secret;
         $hashedSecret = md5($secret);
         $cryptBody = $authenticateData->rawBody . $hashedSecret . $authenticateData->time;
-        if ($authenticateData->method == self::METHOD_SHA512 && !$this->_allow_wrong_signature) {
+        if ($authenticateData->method == self::METHOD_SHA512 || $this->_allow_wrong_signature) {
             $crypt = hash('sha512', $cryptBody);
         } else {
             throw new UnprocessableEntityHttpException("Неизвестный метод подписи данных: " . $authenticateData->method);
