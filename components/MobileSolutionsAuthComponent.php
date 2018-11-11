@@ -2,6 +2,7 @@
 
 namespace Zvinger\Auth\Mobsolutions\components;
 
+use app\components\MobilePushServiceComponent;
 use app\components\user\handler\UserActivationHandler;
 use app\components\user\identity\UserIdentity;
 use app\models\work\user\object\UserObject;
@@ -222,7 +223,9 @@ class MobileSolutionsAuthComponent extends BaseObject
     public function logout()
     {
         $currentTokenObject = $this->getCurrentTokenObject();
+        \Yii::createObject(MobilePushServiceComponent::class)->deleteUserTokens($currentTokenObject->user_id);
         $currentTokenObject->delete();
+
     }
 
 
