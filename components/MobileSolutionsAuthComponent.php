@@ -87,7 +87,8 @@ class MobileSolutionsAuthComponent extends BaseObject
                 'signature'    => $authenticateData->signature,
             ], 1));
 
-        $authResult = \Yii::$app->security->compareString($authenticateData->signature, $crypt);
+        // add check
+        $authResult = $authenticateData->signature && $crypt && \Yii::$app->security->compareString($authenticateData->signature, $crypt);
 
         return $this->_allow_wrong_signature || $authResult;
     }
