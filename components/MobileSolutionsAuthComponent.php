@@ -225,7 +225,6 @@ class MobileSolutionsAuthComponent extends BaseObject
         $currentTokenObject = $this->getCurrentTokenObject();
 //        \Yii::createObject(MobilePushServiceComponent::class)->deleteUserTokens($currentTokenObject->user_id);
         $currentTokenObject->delete();
-
     }
 
 
